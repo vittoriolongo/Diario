@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Testi - Diario</title>
+    <link rel="stylesheet" href="/css/areatestiadmin.css">
+</head>
+<body>
+    <h1>Gestione Testi</h1>
+    
+    <!-- Barra di ricerca per username -->
+    <input type="text" id="search" placeholder="Cerca per idUtente">
+    <button id="searchButton">Cerca</button>
+    
+    <ul id="diaryList">
+        <!-- La lista dei testi sarà popolata dinamicamente qui -->
+    </ul>
+
+    <!-- Contenitore per la finestra di modifica testo -->
+    <div id="editTextContainer" style="display: none;">
+        <label for="newText">Inserisci il nuovo testo:</label>
+        <textarea id="newText" rows="4" cols="50"></textarea>
+        <button id="saveTextButton">Salva</button>
+        <button id="cancelButton">Annulla</button>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Carica la lista di tutti i testi all'avvio
+            loadDiaryList();
+        });
+
+        // Funzione per caricare tutti i testi
+        function loadDiaryList() {
+            fetch("/admin/api/testi")
+                .then(response => response.json())
+                .then(data => {
+                    const diaryList = document.getElementById('diaryList');
+                    diaryList.innerHTML = ''; // Pulisce la lista precedente
+
+                    if (data && data.length > 0) {
+                        // Mostra tutti i testi
+                        data.forEach(diario => {
+                            const li = document.createElement('li');
+                            const dataTesto = new Date(diario.dataTesto);  // Assumendo che la data sia nel formato ISO
+                            const formattedDate = dataTesto.toISOString().split('T')[0];  // Format YYYY-MM-DD
+                            li.textContent = `Testo: ${diario.testo} - Utente: ${diario.userId} - ID: ${diario.id} - Data: ${formattedDate}`;
+
+                            // Bottone per modificare il testo
+                            const modifyButton = document.createElement('button');
+                            modifyButton.textContent = 'Modifica Testo';
+                            modifyButton.addEventListener('click', function () {
+                                modificaTesto(diario.id); // Passa l'ID del testo
+                            });
+
+                            // Bottone per eliminare il testo
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Elimina Testo';
+                            deleteButton.addEventListener('click', function () {
+                                eliminaTesto(diario.id); // Funzione per eliminare il testo
+                            });
+
+                            li.appendChild(modifyButton);
+                            li.appendChild(deleteButton);
+                            diaryList.appendChild(li);
+                        });
+                    } else {
+                        diaryList.innerHTML = 'Nessun testo trovato';
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore durante il caricamento dei testi:', error);
+                    const diaryList = document.getElementById('diaryList');
+                    diaryList.innerHTML = 'Errore durante il caricamento dei testi.';
+                });
+        }
+
+        // Funzione di ricerca per username
+        document.getElementById('searchButton').addEventListener('click', function () {
+            const searchQuery = document.getElementById('search').value.trim();
+
+            if (searchQuery !== '') {
+                fetch(`/admin/api/testi/${searchQuery}`)  // Chiamata all'API per cercare i testi dell'utente
+                    .then(response => response.json())
+                    .then(data => {
+                        const diaryList = document.getElementById('diaryList');
+                        diaryList.innerHTML = ''; // Pulisce la lista precedente
+
+                        if (data && data.length > 0) {
+                            // Mostra i testi per l'utente trovato
+                            data.forEach(diario => {
+                                const li = document.createElement('li');
+                                const dataTesto = new Date(diario.dataTesto);  // Assumendo che la data sia nel formato ISO
+                                const formattedDate = dataTesto.toISOString().split('T')[0];  // Format YYYY-MM-DD
+                                li.textContent = `Testo: ${diario.testo} - ID: ${diario.id} - Data: ${formattedDate}`;
+
+                                // Bottone per modificare il testo
+                                const modifyButton = document.createElement('button');
+                                modifyButton.textContent = 'Modifica Testo';
+                                modifyButton.addEventListener('click', function () {
+                                    modificaTesto(diario.id); // Passa l'ID del testo
+                                });
+
+                                // Bottone per eliminare il testo
+                                const deleteButton = document.createElement('button');
+                                deleteButton.textContent = 'Elimina';
+                                deleteButton.addEventListener('click', function () {
+                                    eliminaTesto(diario.id); // Funzione per eliminare il testo
+                                });
+
+                                li.appendChild(modifyButton);
+                                li.appendChild(deleteButton);
+                                diaryList.appendChild(li);
+                            });
+                        } else {
+                            diaryList.innerHTML = 'Nessun testo trovato per questo utente';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore durante la ricerca dei testi:', error);
+                        const diaryList = document.getElementById('diaryList');
+                        diaryList.innerHTML = 'Errore durante la ricerca.';
+                    });
+            } else {
+                loadDiaryList();  // Ricarica tutti i testi se la barra di ricerca è vuota
+            }
+        });
+
+        // Funzione per la modifica del testo
+        function modificaTesto(id) {
+            const editTextContainer = document.getElementById('editTextContainer');
+            const newTextArea = document.getElementById('newText');
+            editTextContainer.style.display = 'block';
+
+            // Aggiungi un listener per il salvataggio
+            document.getElementById('saveTextButton').addEventListener('click', function () {
+                const nuovoTesto = newTextArea.value.trim();
+
+                if (nuovoTesto) {
+                    fetch(`/admin/api/testi/${id}`, {  // Usa l'ID del testo
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ testo: nuovoTesto }), // Passa il nuovo testo come JSON
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            alert("Testo modificato con successo");
+                            location.reload();  // Ricarica la pagina per aggiornare la lista
+                        } else {
+                            alert("Errore nella modifica del testo");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore:', error);
+                    });
+                } else {
+                    alert("Il testo non può essere vuoto");
+                }
+
+                // Nascondi il contenitore dopo il salvataggio
+                editTextContainer.style.display = 'none';
+            });
+
+            // Annulla modifica
+            document.getElementById('cancelButton').addEventListener('click', function () {
+                // Nascondi la finestra di modifica
+                editTextContainer.style.display = 'none';
+            });
+        }
+
+        // Funzione per eliminare il testo
+        function eliminaTesto(id) {
+            if (confirm("Sei sicuro di voler eliminare questo testo?")) {
+                fetch(`/admin/api/testi/${id}`, {
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Testo eliminato con successo");
+                        location.reload();  // Ricarica la pagina per aggiornare la lista
+                    } else {
+                        alert("Errore nell'eliminazione del testo");
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

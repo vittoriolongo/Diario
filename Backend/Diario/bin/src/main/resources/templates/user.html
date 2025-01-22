@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Area Utente - Diario</title>
+    <link rel="stylesheet" href="/css/user.css">
+</head>
+<body>
+    <h1>Benvenuto, [NomeUtente]</h1>
+    
+    <!-- Tabella per visualizzare i testi dell'utente -->
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Testo</th>
+                <th>Data</th> 
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody id="testiList">
+            <!-- testi dell'utente -->
+        </tbody>
+    </table>
+    
+    <button onclick="document.getElementById('crea-text-area').style.display='block'">Crea Testo</button>
+    
+    <!-- Sezione per creare un nuovo testo -->
+    <div id="crea-text-area" style="display:none;">
+        <textarea id="newText" rows="5" cols="50" placeholder="Scrivi il tuo testo qui"></textarea>
+        <br>
+        <button onclick="creaTesto()">Crea</button>
+    </div>
+
+    <!-- Sezione per la modifica del testo -->
+    <div id="modifica-text-area" style="display:none;">
+        <textarea id="modificaText" rows="5" cols="50"></textarea>
+        <br>
+        <button onclick="salvaModifica()">Salva</button>
+    </div>
+
+    <script>
+        let testi = []; 
+
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('/user/api/testi')
+                .then(response => response.json())
+                .then(data => {
+                    testi = data; 
+                    aggiornaTabella(testi); 
+                })
+                .catch(error => {
+                    console.error('Errore durante il fetch dei testi:', error);
+                });
+        });
+		
+		document.addEventListener("DOMContentLoaded", function() {
+		    // Chiamata all'API per ottenere il nome utente
+		    fetch('/user/api/username')
+		        .then(response => response.text())
+		        .then(username => {
+		            // Aggiorna il contenuto dell'elemento <h1> con il nome dell'utente
+		            document.querySelector('h1').innerHTML = `Benvenuto, ${username}`;
+		        })
+		        .catch(error => {
+		            console.error('Errore nel recupero del nome utente:', error);
+		        });
+		});
+
+
+        // Funzione per aggiornare la tabella
+        function aggiornaTabella(testi) {
+            const testiList = document.getElementById('testiList');
+            testiList.innerHTML = ''; // Pulisce la tabella
+
+            testi.forEach(testo => {
+                const tr = document.createElement('tr');
+                
+                const tdText = document.createElement('td');
+                tdText.textContent = testo.testo;
+                
+
+                const tdDate = document.createElement('td');
+                const dataTesto = new Date(testo.dataTesto); 
+                tdDate.textContent = dataTesto.toLocaleDateString(); 
+                
+                const tdActions = document.createElement('td');
+                
+                const modifyButton = document.createElement('button');
+                modifyButton.textContent = 'Modifica';
+                modifyButton.addEventListener('click', function () {
+                    mostraAreaModifica(testo.id, testo.testo);
+                });
+                
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Elimina';
+                deleteButton.addEventListener('click', function () {
+                    eliminaTesto(testo.id);
+                });
+
+                tdActions.appendChild(modifyButton);
+                tdActions.appendChild(deleteButton);
+                
+                tr.appendChild(tdText);
+                tr.appendChild(tdDate);
+                tr.appendChild(tdActions);
+                testiList.appendChild(tr);
+            });
+        }
+
+        // Funzione per mostrare l'area di modifica
+        function mostraAreaModifica(id, testoAttuale) {
+
+            document.getElementById('modifica-text-area').style.display = 'block';
+            document.getElementById('modificaText').value = testoAttuale;
+            
+
+            document.getElementById('modificaText').setAttribute('data-id', id);
+        }
+
+        // Funzione per salvare la modifica
+        function salvaModifica() {
+            const newText = document.getElementById('modificaText').value.trim();
+            const id = document.getElementById('modificaText').getAttribute('data-id');
+            
+            if (newText === '') {
+                alert('Inserisci un testo valido');
+                return;
+            }
+
+            fetch(`/user/api/testi/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ testo: newText }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Testo modificato con successo!');
+                
+
+                const testoModificato = testi.find(testo => testo.id == id);
+                if (testoModificato) {
+                    testoModificato.testo = newText;
+                }
+                
+                // Ricarica la tabella con il testo aggiornato
+                aggiornaTabella(testi);
+
+                // Nascondi l'area di modifica
+                document.getElementById('modifica-text-area').style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Errore durante la modifica del testo:', error);
+            });
+        }
+
+        // Funzione per creare un nuovo testo
+        function creaTesto() {
+            const newText = document.getElementById('newText').value.trim();
+            if (newText === '') {
+                alert('Inserisci un testo valido');
+                return;
+            }
+
+            const testo = { testo: newText };
+            
+            fetch('/user/api/testi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(testo),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Testo creato con successo!');
+                // Aggiungi il nuovo testo all'array e aggiorna la tabella
+                testi.push(data);
+                aggiornaTabella(testi); // Ricarica la tabella con il nuovo testo
+            })
+            .catch(error => {
+                console.error('Errore durante la creazione del testo:', error);
+            });
+        }
+
+        // Funzione per eliminare un testo
+        function eliminaTesto(id) {
+            if (confirm("Sei sicuro di voler eliminare questo testo?")) {
+                fetch(`/user/api/testi/${id}`, {
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert('Testo eliminato con successo!');
+                        // Rimuovi il testo dall'array e aggiorna la tabella
+                        testi = testi.filter(testo => testo.id !== id);
+                        aggiornaTabella(testi);
+                    } else {
+                        alert('Errore nell\'eliminazione del testo');
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore durante l\'eliminazione del testo:', error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Utenti - Diario</title>
+	<link rel="stylesheet" href="/css/areautentiadmin.css">
+</head>
+<body>
+    <h1>Gestione Utenti</h1>
+    <input type="text" id="search" placeholder="Cerca per username">
+    <button id="searchButton">Cerca</button>
+    <ul id="userList">
+        <!-- La lista degli utenti sarà popolata dinamicamente qui -->
+    </ul>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Chiamata all'API per ottenere la lista di tutti gli utenti
+            fetch('/admin/api/utenti')
+                .then(response => response.json())
+                .then(data => {
+                    const userList = document.getElementById('userList');
+                    data.forEach(utente => {
+                        const li = document.createElement('li');
+                        li.textContent = `${utente.utente} - ID: ${utente.id}`;
+                        
+                        // Bottone per modificare la password
+                        const modifyButton = document.createElement('button');
+                        modifyButton.textContent = 'Modifica Password';
+                        modifyButton.addEventListener('click', function () {
+                            const newPassword = prompt("Inserisci la nuova password:");
+                            if (newPassword) {
+                                modificaPassword(utente.id, newPassword);
+                            }
+                        });
+
+                        // Bottone per eliminare l'utente
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Elimina';
+                        deleteButton.addEventListener('click', function () {
+                            eliminaUtente(utente.id); // Chiamata alla funzione di eliminazione
+                        });
+
+                        li.appendChild(modifyButton);
+                        li.appendChild(deleteButton);
+                        userList.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Errore durante il fetch degli utenti:', error);
+                });
+        });
+
+        // Funzione per modificare la password
+        function modificaPassword(userId, newPassword) {
+            fetch(`/admin/api/utenti/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: userId,
+                    password: newPassword  // La nuova password da inviare
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Password modificata con successo!");
+                } else {
+                    alert("Errore nella modifica della password.");
+                }
+            })
+            .catch(error => {
+                console.error('Errore durante la modifica della password:', error);
+            });
+        }
+
+        // Funzione di ricerca per username o ID
+        document.getElementById('searchButton').addEventListener('click', function () {
+            const searchQuery = document.getElementById('search').value.trim();
+
+            if (searchQuery !== '') {
+                const isNumber = !isNaN(searchQuery);
+
+                const endpoint = isNumber
+                    ? `/admin/api/utenti/id/${searchQuery}` // Ricerca per ID
+                    : `/admin/api/utenti/${searchQuery}`; // Ricerca per username
+
+                fetch(endpoint)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Utente non trovato');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const userList = document.getElementById('userList');
+                        userList.innerHTML = ''; // Pulisce la lista precedente
+                        if (data && data.utente) {
+                            const li = document.createElement('li');
+                            li.textContent = `${data.utente} - ID: ${data.id}`;
+                            
+                            const modifyButton = document.createElement('button');
+                            modifyButton.textContent = 'Modifica Password';
+                            modifyButton.addEventListener('click', function () {
+                                const newPassword = prompt("Inserisci la nuova password:");
+                                if (newPassword) {
+                                    modificaPassword(data.id, newPassword);
+                                }
+                            });
+
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Elimina Utente';
+                            deleteButton.addEventListener('click', function () {
+                                eliminaUtente(data.id);
+                            });
+
+                            li.appendChild(modifyButton);
+                            li.appendChild(deleteButton);
+                            userList.appendChild(li);
+                        } else {
+                            userList.innerHTML = 'Nessun utente trovato';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore durante la ricerca dell\'utente:', error);
+                        const userList = document.getElementById('userList');
+                        userList.innerHTML = 'Errore durante la ricerca.';
+                    });
+            } else {
+                alert('Inserisci un username o ID valido');
+            }
+        });
+
+        // Funzione per eliminare un utente
+        function eliminaUtente(id) {
+            if (confirm("Sei sicuro di voler eliminare questo utente?")) {
+                fetch(`/admin/api/utenti/${id}`, { // Corretto con template literals
+                    method: 'DELETE',
+                })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Utente eliminato con successo");
+                        location.reload(); // Ricarica la pagina per aggiornare la lista
+                    } else {
+                        alert("Errore nell'eliminazione dell'utente");
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore durante l\'eliminazione dell\'utente:', error);
+                });
+            }
+        }
+    </script>
+</body>
+</html>

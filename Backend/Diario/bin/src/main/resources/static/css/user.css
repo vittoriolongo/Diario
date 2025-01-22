@@ -1,0 +1,95 @@
+/* Impostazioni generali della pagina */
+body {
+    font-family: 'Georgia', serif; 
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f5f5f5; 
+    color: #333; 
+    text-align: center;
+}
+
+/* Stile per il titolo */
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #333;
+    font-weight: 600;
+}
+
+/* Stile per la tabella */
+table {
+    width: 80%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+}
+
+th {
+    background-color: #8c7b5c; 
+    color: white;
+}
+
+td {
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+/* Stile per i pulsanti */
+.button {
+    background-color: #8c7b5c; 
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+}
+
+.button:hover {
+    background-color: #756148; 
+}
+
+/* Sezione per la creazione del testo */
+crea-text-area {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    margin-top: 20px;
+}
+
+/* Area di testo */
+textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 1rem;
+    background-color: #fafafa;
+    margin-bottom: 15px;
+}
+
+/* Link di navigazione */
+a {
+    color: #8c7b5c; /* Beige per il link */
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+}

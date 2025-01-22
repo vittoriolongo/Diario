@@ -1,0 +1,88 @@
+/* Impostazioni generali della pagina */
+body {
+    font-family: 'Georgia', serif; 
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f5f5f5; 
+    color: #333; 
+    text-align: center;
+}
+
+/* Stile per il titolo */
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #333; 
+    font-weight: 600; 
+}
+
+/* Stile per il form */
+form {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    width: 350px; 
+    text-align: left;
+    border: 1px solid #e0e0e0; 
+}
+
+/* Etichette dei campi */
+label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #4a4a4a; 
+}
+
+/* Campi di input */
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    margin: 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    background-color: #fafafa; 
+    font-size: 1rem;
+}
+
+/* Pulsante di submit */
+button {
+    background-color: #8c7b5c;
+    color: #fff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 15px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+/* Hover sul pulsante */
+button:hover {
+    background-color: #756148; 
+}
+
+/* Link di login */
+p {
+    margin-top: 20px;
+}
+
+a {
+    color: #8c7b5c; 
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+}
